@@ -1,14 +1,10 @@
-project "TemplateApp"
+project "Crealm"
    kind "ConsoleApp"
-   language "C++"
-   cppdialect "C++17"
+   language "C"
    targetdir "bin/%{cfg.buildcfg}"
    staticruntime "off"
 
-   pchheader "stdafx.h"
-   pchsource "../%{prj.name}/src/stdafx.cpp"
-
-   files { "src/**.h", "src/**.cpp" }
+   files { "src/**.h", "src/**.c" }
 
    includedirs
    {
@@ -19,25 +15,22 @@ project "TemplateApp"
 
    filter "system:windows"
       systemversion "latest"
-      defines { "WL_PLATFORM_WINDOWS" }
-   filter "system:linux"
-      systemversion "latest"
-      defines { "WL_PLATFORM_LINUX" }
+      defines { "CR_PLATFORM_WINDOWS" }
 
    filter "configurations:Debug"
-      defines { "WL_DEBUG" }
+      defines { "CR_DEBUG" }
       runtime "Debug"
       symbols "On"
 
    filter "configurations:Release"
-      defines { "WL_RELEASE" }
+      defines { "CR_RELEASE" }
       runtime "Release"
       optimize "On"
       symbols "On"
 
    filter "configurations:Dist"
       kind "WindowedApp"
-      defines { "WL_DIST" }
+      defines { "CR_DIST" }
       runtime "Release"
       optimize "On"
       symbols "Off"

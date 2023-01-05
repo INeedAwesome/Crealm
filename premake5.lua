@@ -1,8 +1,8 @@
-workspace "TemplateApp"
+workspace "Crealm"
    architecture "x64"
    configurations { "Debug", "Release", "Dist" }
-   startproject "TemplateApp"
+   startproject "Crealm"
 
-outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+outputdir = "%{cfg.buildcfg}-x64"
 
-include "TemplateApp"
+include "Crealm"
