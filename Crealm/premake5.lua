@@ -1,5 +1,5 @@
 project "Crealm"
-   kind "ConsoleApp"
+   kind "WindowedApp"
    language "C"
    targetdir "bin/%{cfg.buildcfg}"
    staticruntime "off"
