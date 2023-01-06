@@ -1,8 +1,13 @@
 #include <stdio.h>
 
-#pragma warning(push, 0)
+#pragma warning(push, 2)
 #include <Windows.h>
 #pragma warning(pop)
+
+HINSTANCE GetInstance()
+{
+	return GetModuleHandle(NULL);
+}
 
 HWND g_hwnd;
 
@@ -10,8 +15,10 @@ LRESULT CALLBACK MainWindowProcedure(
 	HWND	p_Hwnd,
 	UINT	p_Msg,
 	WPARAM	p_Wide,
-	LPARAM	p_Low
+	LPARAM	p_Low	// low — meaing short (considering the term wide)
 );
+
+DWORD CreateMainGameWindow();
 
 int APIENTRY WinMain(
 	_In_     HINSTANCE p_Instance,
@@ -19,46 +26,15 @@ int APIENTRY WinMain(
 	_In_     LPSTR p_CommandLine,
 	_In_     int p_ShowCommand)
 {
-	UNREFERENCED_PARAMETER(p_Instance);
-	UNREFERENCED_PARAMETER(p_PreviousInstance);
-	UNREFERENCED_PARAMETER(p_CommandLine);
-	UNREFERENCED_PARAMETER(p_ShowCommand);
-
-	WNDCLASS windowClass;
-	ZeroMemory(&windowClass, sizeof(windowClass));
+	if (CreateMainGameWindow() != ERROR_SUCCESS)
 	{
-		windowClass.lpfnWndProc = MainWindowProcedure;
-		windowClass.style = 0;
-		windowClass.cbClsExtra = 0;
-		windowClass.cbWndExtra = 0;
-		windowClass.hInstance = p_Instance;
-		windowClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-		windowClass.hCursor = LoadCursor(NULL, IDC_WAIT);
-		windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW);
-		windowClass.lpszMenuName = 0;
-		windowClass.lpszClassName = L"Hello Win32";
-	}
-
-	if (!(RegisterClass(&windowClass)))
-	{
-		MessageBox(NULL, L"Window registration failed!", L"Error", MB_OK | MB_ICONERROR);
 		return 1;
 	}
-
-	g_hwnd = CreateWindow(windowClass.lpszClassName, windowClass.lpszClassName, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 240, 120, NULL, NULL, p_Instance, NULL);
-
-	if (!g_hwnd)
-	{
-		MessageBox(NULL, L"Window creation failed!", L"Error", MB_OK | MB_ICONERROR);
-		return 2;
-	}
-	ShowWindow(g_hwnd, SW_SHOW);
-
 
 	MSG message;
 	ZeroMemory(&message, sizeof(message));
 
-	while (GetMessage(&message, NULL, NULL, NULL) > 0)
+	while (GetMessage(&message, NULL, NULL, NULL) > 0)		//	 Message / Window loop
 	{
 		TranslateMessage(&message);
 		DispatchMessage(&message);
@@ -79,12 +55,55 @@ LRESULT CALLBACK MainWindowProcedure(
 		{
 			PostQuitMessage(0);
 		}
-		case WM_PAINT: 
-		{
-
-		}
-
 	default:
 		return DefWindowProc(p_Hwnd, p_Msg, p_Wide, p_Low);
 	}
+}
+
+DWORD CreateMainGameWindow()
+{
+	DWORD result = ERROR_SUCCESS;
+
+	WNDCLASS windowClass; // initialize window class
+	ZeroMemory(&windowClass, sizeof(windowClass));
+	{
+		windowClass.lpfnWndProc = MainWindowProcedure;
+		windowClass.style = 0;
+		windowClass.cbClsExtra = 0;
+		windowClass.cbWndExtra = 0;
+		windowClass.hInstance = GetInstance();
+		windowClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+		windowClass.hCursor = LoadCursor(NULL, IDC_WAIT);
+		windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW);
+		windowClass.lpszMenuName = 0;
+		windowClass.lpszClassName = L"Hello Crealm";
+	}
+
+	if (!(RegisterClass(&windowClass))) // register the window class
+	{
+		result = GetLastError();
+		MessageBox(NULL, L"Window registration failed!", L"Error", MB_OK | MB_ICONERROR);
+		return result;
+	}
+
+	g_hwnd = CreateWindow(						// Creating the window
+		windowClass.lpszClassName,
+		windowClass.lpszClassName,			// Window name
+		WS_OVERLAPPEDWINDOW,				// Styles 
+		CW_USEDEFAULT, CW_USEDEFAULT,		// Pos x, y
+		240, 120,							// Width, Height
+		NULL, NULL,
+		GetInstance(),
+		NULL
+	);
+
+	if (!g_hwnd) // return if the window creation wasn't successful
+	{
+		result = GetLastError();
+		MessageBox(NULL, L"Window creation failed!", L"Error", MB_OK | MB_ICONERROR);
+		return result;
+	}
+	ShowWindow(g_hwnd, SW_SHOW);
+
+	return result;
 }
