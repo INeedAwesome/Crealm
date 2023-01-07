@@ -6,7 +6,7 @@
 #include <Windows.h>
 #pragma warning(pop)
 
-#define GAME_NAME L"Crealm"
+#include "Game.h"
 
 #define TOSTRING(X) #X
 
@@ -28,7 +28,3 @@ LRESULT CALLBACK MainWindowProcedure(
 DWORD CreateMainGameWindow(void);
 
 BOOL IsGameAlreadyRunning(void);
-
-void ProcessPlayerInput(void);
-
-void RenderFrameGraphics(void);

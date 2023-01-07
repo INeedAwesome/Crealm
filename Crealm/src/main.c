@@ -17,6 +17,7 @@ int APIENTRY WinMain(	// Main entrypoint for the application
 		return 1;
 	}
 
+	Init(g_hwnd);
 
 	MSG message = { 0 };
 	g_Running = TRUE;
@@ -119,19 +120,4 @@ BOOL IsGameAlreadyRunning(void)
 		return 1; // true
 	}
 	return 0; // false
-}
-
-void ProcessPlayerInput(void)
-{
-	short escapeKeyDown = GetAsyncKeyState(VK_ESCAPE);
-	if (escapeKeyDown)
-	{
-		PostMessage(g_hwnd, WM_CLOSE, 0, 0);
-	}
-
-}
-
-void RenderFrameGraphics(void)
-{
-
 }
