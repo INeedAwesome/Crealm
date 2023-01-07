@@ -25,6 +25,6 @@ LRESULT CALLBACK MainWindowProcedure(
 	LPARAM	p_Low	// low — meaing short (considering the term wide)
 );
 
-DWORD CreateMainGameWindow(void);
+int CreateMainGameWindow(void);
 
 BOOL IsGameAlreadyRunning(void);

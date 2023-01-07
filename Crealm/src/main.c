@@ -1,4 +1,5 @@
 #include "Main.h"
+#include "Common.h"
 
 int APIENTRY WinMain(	// Main entrypoint for the application
 	_In_     HINSTANCE p_Instance,
@@ -8,16 +9,13 @@ int APIENTRY WinMain(	// Main entrypoint for the application
 {
 
 	if (IsGameAlreadyRunning())
-	{
-		return 0;
-	}
-
-	if (CreateMainGameWindow() != ERROR_SUCCESS)
-	{
-		return 1;
-	}
-
-	InitializeGame(g_hwnd);
+		return ERROR_GAME_ALREADY_RUNNING;
+	
+	if (CreateMainGameWindow() == FAILED)
+		return CRGetLastError();
+	
+	if (InitializeGame(g_hwnd) == FAILED)
+		return CRGetLastError();
 
 	MSG message = { 0 };
 	g_Running = TRUE;
@@ -38,7 +36,7 @@ int APIENTRY WinMain(	// Main entrypoint for the application
 		// render game
 		RenderFrameGraphics();
 
-		Sleep(0);
+		Sleep(1);
 	}
 
 	return 0; 
@@ -62,10 +60,8 @@ LRESULT CALLBACK MainWindowProcedure(
 	}
 }
 
-DWORD CreateMainGameWindow()
+int CreateMainGameWindow()
 {
-	DWORD result = ERROR_SUCCESS;
-
 	WNDCLASS windowClass; // initialize window class
 	ZeroMemory(&windowClass, sizeof(windowClass));
 	{
@@ -76,16 +72,16 @@ DWORD CreateMainGameWindow()
 		windowClass.hInstance = GetInstance();
 		windowClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 		windowClass.hCursor = LoadCursor(NULL, IDC_WAIT);
-		windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW);
+		windowClass.hbrBackground = CreateSolidBrush(RGB(255, 0, 255));
 		windowClass.lpszMenuName = 0;
 		windowClass.lpszClassName = GAME_NAME;
 	}
 
 	if (!(RegisterClass(&windowClass))) // register the window class
 	{
-		result = GetLastError();
+		CRSetLastError(ERROR_WINDOW_REGISTRATION);
 		MessageBox(NULL, L"Window registration failed!", L"Error", MB_OK | MB_ICONERROR);
-		return result;
+		return FAILED;
 	}
 
 	g_hwnd = CreateWindow(					// Creating the window
@@ -101,13 +97,13 @@ DWORD CreateMainGameWindow()
 
 	if (!g_hwnd) // return if the window creation wasn't successful
 	{
-		result = GetLastError();
+		CRSetLastError(ERROR_WINDOW_CREATION);
 		MessageBox(NULL, L"Window creation failed!", L"Error", MB_OK | MB_ICONERROR);
-		return result;
+		return FAILED;
 	}
 	ShowWindow(g_hwnd, SW_SHOW);
 
-	return result;
+	return 0;
 }
 
 BOOL IsGameAlreadyRunning(void)

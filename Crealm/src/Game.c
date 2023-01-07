@@ -1,24 +1,26 @@
 #include "Game.h"
+#include "Common.h"
 
 int InitializeGame(HWND p_hwnd)
 {
 	m_hwnd = p_hwnd;
 
-	m_drawingSurface.BitmapInfo.bmiHeader.biSize = sizeof(m_drawingSurface.BitmapInfo.bmiHeader);
-	m_drawingSurface.BitmapInfo.bmiHeader.biWidth = GAME_RES_WIDTH;
-	m_drawingSurface.BitmapInfo.bmiHeader.biHeight= GAME_RES_HEIGHT;
-	m_drawingSurface.BitmapInfo.bmiHeader.biBitCount = GAME_BPP;
-	m_drawingSurface.BitmapInfo.bmiHeader.biCompression = BI_RGB;
-	m_drawingSurface.BitmapInfo.bmiHeader.biPlanes = 1;
+	m_backBuffer.BitmapInfo.bmiHeader.biSize = sizeof(m_backBuffer.BitmapInfo.bmiHeader);
+	m_backBuffer.BitmapInfo.bmiHeader.biWidth = GAME_RES_WIDTH;
+	m_backBuffer.BitmapInfo.bmiHeader.biHeight= GAME_RES_HEIGHT;
+	m_backBuffer.BitmapInfo.bmiHeader.biBitCount = GAME_BPP;
+	m_backBuffer.BitmapInfo.bmiHeader.biCompression = BI_RGB;
+	m_backBuffer.BitmapInfo.bmiHeader.biPlanes = 1;
 	
-	m_drawingSurface.Memory = VirtualAlloc(NULL/*Windows will create addresses for us*/, GAME_DRAWING_AREA_MEMORY_SIZE, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+	m_backBuffer.Memory = VirtualAlloc(NULL/*Windows will create addresses for us*/, GAME_DRAWING_AREA_MEMORY_SIZE, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
-	if (!m_drawingSurface.Memory)
+	if (!m_backBuffer.Memory)
 	{
+		CRSetLastError(ERROR_NO_MEMORY);
 		MessageBox(NULL, L"Failed to allocate memory for drawing surface!", L"Error!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
-		return 10;
+		return FAILED;
 	}
-	return 0;
+	return SUCCESS;
 }
 
 void ProcessPlayerInput(void)
@@ -33,5 +35,7 @@ void ProcessPlayerInput(void)
 
 void RenderFrameGraphics(void)
 {
+	HDC deviceContext = GetDC(m_hwnd);
 
+	ReleaseDC(m_hwnd, deviceContext);
 }
