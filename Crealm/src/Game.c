@@ -13,14 +13,22 @@ int InitializeGame(HWND p_hwnd)
 	m_backBuffer.BitmapInfo.bmiHeader.biPlanes = 1;
 	
 	m_backBuffer.Memory = VirtualAlloc(NULL/*Windows will create addresses for us*/, GAME_DRAWING_AREA_MEMORY_SIZE, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-
 	if (!m_backBuffer.Memory)
 	{
 		CRSetLastError(ERROR_NO_MEMORY);
 		MessageBox(NULL, L"Failed to allocate memory for drawing surface!", L"Error!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
 		return FAILED;
 	}
+	// VirtualAlloc zeroes out the buffer so we don't need to use ZeroMemory()
+
+
+
 	return SUCCESS;
+}
+
+void TerminateGame(void)
+{
+	VirtualFree(m_backBuffer.Memory, 0, MEM_RELEASE);
 }
 
 void ProcessPlayerInput(void)

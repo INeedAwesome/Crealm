@@ -39,6 +39,7 @@ int APIENTRY WinMain(	// Main entrypoint for the application
 		Sleep(1);
 	}
 
+	TerminateGame();
 	return 0; 
 }
 

@@ -5,6 +5,8 @@
 #include <Windows.h>
 #pragma warning(pop)
 
+#include "Common.h"
+
 #define GAME_NAME L"Crealm"
 
 #define GAME_RES_WIDTH						384
@@ -18,10 +20,19 @@ typedef struct GAMEBITMAP
 	void* Memory;
 } GAMEBITMAP;
 
+typedef struct PIXEL32
+{
+	uint8_t Blue;
+	uint8_t Green;
+	uint8_t Red;
+	uint8_t Alpha;
+} PIXEL32;
+
 HWND m_hwnd;
 GAMEBITMAP m_backBuffer;
 
 int InitializeGame(HWND p_hwnd); // Ran after window but before loop
+void TerminateGame(void);
 
 void ProcessPlayerInput(void);
 
