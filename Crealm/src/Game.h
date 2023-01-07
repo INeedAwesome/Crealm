@@ -7,9 +7,21 @@
 
 #define GAME_NAME L"Crealm"
 
-HWND m_hwnd;
+#define GAME_RES_WIDTH						384
+#define GAME_RES_HEIGHT						216
+#define GAME_BPP							32	// Bits Per Pixel
+#define GAME_DRAWING_AREA_MEMORY_SIZE		(GAME_RES_WIDTH * GAME_RES_HEIGHT * (GAME_BPP / 4 /* 4 bytes per pixel */ ) )
 
-void Init(HWND p_hwnd);
+typedef struct GAMEBITMAP
+{
+	BITMAPINFO BitmapInfo;
+	void* Memory;
+} GAMEBITMAP;
+
+HWND m_hwnd;
+GAMEBITMAP m_drawingSurface;
+
+int InitializeGame(HWND p_hwnd); // Ran after window but before loop
 
 void ProcessPlayerInput(void);
 

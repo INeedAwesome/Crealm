@@ -17,7 +17,7 @@ int APIENTRY WinMain(	// Main entrypoint for the application
 		return 1;
 	}
 
-	Init(g_hwnd);
+	InitializeGame(g_hwnd);
 
 	MSG message = { 0 };
 	g_Running = TRUE;
@@ -88,7 +88,7 @@ DWORD CreateMainGameWindow()
 		return result;
 	}
 
-	g_hwnd = CreateWindow(						// Creating the window
+	g_hwnd = CreateWindow(					// Creating the window
 		windowClass.lpszClassName,
 		windowClass.lpszClassName,			// Window name
 		WS_OVERLAPPEDWINDOW,				// Styles 
