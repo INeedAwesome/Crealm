@@ -71,7 +71,7 @@ int CreateMainGameWindow()
 		windowClass.cbWndExtra = 0;
 		windowClass.hInstance = GetInstance();
 		windowClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-		windowClass.hCursor = LoadCursor(NULL, IDC_WAIT);
+		windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 		windowClass.hbrBackground = CreateSolidBrush(RGB(255, 0, 255));
 		windowClass.lpszMenuName = 0;
 		windowClass.lpszClassName = GAME_NAME;

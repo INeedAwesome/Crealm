@@ -37,5 +37,17 @@ void RenderFrameGraphics(void)
 {
 	HDC deviceContext = GetDC(m_hwnd);
 
+	StretchDIBits(deviceContext, 
+		0, 0, 
+		100, 100, 
+		0, 0, 
+		100, 100, 
+		m_backBuffer.Memory, 
+		&m_backBuffer.BitmapInfo, 
+		DIB_RGB_COLORS, 
+		SRCCOPY
+	);
+
+
 	ReleaseDC(m_hwnd, deviceContext);
 }
