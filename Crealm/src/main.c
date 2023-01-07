@@ -123,6 +123,11 @@ BOOL IsGameAlreadyRunning(void)
 
 void ProcessPlayerInput(void)
 {
+	short escapeKeyDown = GetAsyncKeyState(VK_ESCAPE);
+	if (escapeKeyDown)
+	{
+		PostMessage(g_hwnd, WM_CLOSE, 0, 0);
+	}
 
 }
 
