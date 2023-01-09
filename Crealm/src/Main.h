@@ -9,7 +9,7 @@
 #include "Game.h"
 
 #define TOSTRING(X) #X
-#define CALCULATE_AVG_FPS_EVERY_X_FPS 100
+#define CALCULATE_AVG_FPS_EVERY_X_FPS 30
 
 
 typedef struct GAME_PERFORMANCE_DATA
@@ -18,7 +18,6 @@ typedef struct GAME_PERFORMANCE_DATA
 	uint32_t RawFPSAverage; // game loop speed
 	uint32_t CookedFPSAverage; // as close to 60/144/165/user value
 	int64_t PerformanceFrequency;
-	int64_t ElapsedMicrosecondsPerFrame;
 
 	MONITORINFO g_monitorInfo;
 	int32_t g_monitorWidth;

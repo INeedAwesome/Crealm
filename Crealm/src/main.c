@@ -26,6 +26,8 @@ int APIENTRY WinMain(	// Main entrypoint for the application
 
 	int64_t FrameStart = 0;
 	int64_t FrameEnd = 0;
+	int64_t ElapsedMicrosecondsPerFrame = 0;
+	int64_t ElapsedMicrosecondsPerFrameAccumulator = 0;
 
 	MSG message = { 0 };
 	g_Running = TRUE;
@@ -50,20 +52,25 @@ int APIENTRY WinMain(	// Main entrypoint for the application
 
 		QueryPerformanceCounter(&FrameEnd);
 
-		g_gamePerformanceData.ElapsedMicrosecondsPerFrame = (FrameEnd - FrameStart);
+		ElapsedMicrosecondsPerFrame = (FrameEnd - FrameStart);
 
-		g_gamePerformanceData.ElapsedMicrosecondsPerFrame *= 1000000;
-		g_gamePerformanceData.ElapsedMicrosecondsPerFrame /= g_gamePerformanceData.PerformanceFrequency;
+		ElapsedMicrosecondsPerFrame *= 1000000;
+		ElapsedMicrosecondsPerFrame /= g_gamePerformanceData.PerformanceFrequency;
 
 		Sleep(1);
 
 		g_gamePerformanceData.TotalFramesRendered++;
+		ElapsedMicrosecondsPerFrameAccumulator += ElapsedMicrosecondsPerFrame;
 		
 		if ((g_gamePerformanceData.TotalFramesRendered % CALCULATE_AVG_FPS_EVERY_X_FPS) == 0)
 		{
+			int64_t averageMicrosecondsPerFrame = ElapsedMicrosecondsPerFrameAccumulator / CALCULATE_AVG_FPS_EVERY_X_FPS;
+
 			char str[64] = { 0 };
-			_snprintf_s(str, _countof(str), _TRUNCATE, "Elapsed microseconds: %lli\n", g_gamePerformanceData.ElapsedMicrosecondsPerFrame);
+			_snprintf_s(str, _countof(str), _TRUNCATE, "Average milliseconds/frame: %02f\n", (float)(averageMicrosecondsPerFrame * 0.001f));
 			OutputDebugStringA(str);
+
+			ElapsedMicrosecondsPerFrameAccumulator = 0;
 		}
 	}
 
@@ -102,7 +109,7 @@ BOOL IsGameAlreadyRunning(void)
 }
 
 
-int CRCreateMainGameWindow()
+int32_t CRCreateMainGameWindow()
 {
 	WNDCLASS windowClass; // initialize window class
 	ZeroMemory(&windowClass, sizeof(windowClass));
@@ -148,7 +155,7 @@ int CRCreateMainGameWindow()
 	return SUCCESS;
 }
 
-int CRGetMonitorInfoForWindow()
+int32_t CRGetMonitorInfoForWindow()
 {
 	g_gamePerformanceData.g_monitorInfo.cbSize = sizeof(g_gamePerformanceData.g_monitorInfo);
 	if (GetMonitorInfoW(MonitorFromWindow(g_hwnd, MONITOR_DEFAULTTOPRIMARY), &g_gamePerformanceData.g_monitorInfo) == 0/*failed*/)
@@ -163,7 +170,7 @@ int CRGetMonitorInfoForWindow()
 	return SUCCESS;
 }
 
-int CRSetWindowPosition()
+int32_t CRSetWindowPosition()
 {
 	// WS_OVERLAPPEDWINDOW — example 0x01101101
 	// ~WS_OVERLAPPED // flipping
