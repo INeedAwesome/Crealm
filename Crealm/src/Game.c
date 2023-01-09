@@ -46,6 +46,21 @@ void ProcessPlayerInput(void)
 
 void RenderFrameGraphics(void)
 {
+	//memset(m_backBuffer.Memory, 0x0F, GAME_DRAWING_AREA_MEMORY_SIZE);
+
+	PIXEL32 pixel = { 0 };
+	{
+		pixel.Blue = 0x0F;
+		pixel.Green = 0xAF;
+		pixel.Red = 0x0F;
+		pixel.Alpha = 0xFF;
+	}
+
+	for (int32_t i = 0; i < GAME_RES_WIDTH * GAME_RES_HEIGHT; i++)
+	{
+		memcpy((PIXEL32*) m_backBuffer.Memory + i, &pixel, sizeof(PIXEL32));
+	}
+
 	HDC deviceContext = GetDC(m_hwnd);
 
 	StretchDIBits(deviceContext, 
