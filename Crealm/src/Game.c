@@ -1,7 +1,7 @@
 #include "Game.h"
 #include "Common.h"
 
-int InitializeGame(HWND p_hwnd)
+int InitializeGame(HWND p_hwnd, MONITORINFO p_monitorInfo)
 {
 	m_hwnd = p_hwnd;
 
@@ -33,7 +33,7 @@ void TerminateGame(void)
 
 void ProcessPlayerInput(void)
 {
-	short escapeKeyDown = GetAsyncKeyState(VK_ESCAPE);
+	int16_t escapeKeyDown = GetAsyncKeyState(VK_ESCAPE);
 	if (escapeKeyDown)
 	{
 		PostMessage(m_hwnd, WM_CLOSE, 0, 0);

@@ -3,6 +3,7 @@ project "Crealm"
    language "C"
    targetdir "bin/%{cfg.buildcfg}"
    staticruntime "off"
+   dpiawareness "HighPerMonitor"
 
    files { "src/**.h", "src/**.c" }
 

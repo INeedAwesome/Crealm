@@ -12,6 +12,7 @@
 
 HWND g_hwnd;
 BOOL g_Running = FALSE;
+MONITORINFO g_monitorInfo;
 
 HINSTANCE GetInstance()
 {
@@ -26,5 +27,7 @@ LRESULT CALLBACK MainWindowProcedure(
 );
 
 int CreateMainGameWindow(void);
+
+int GetMonitorInfoForWindow();
 
 BOOL IsGameAlreadyRunning(void);

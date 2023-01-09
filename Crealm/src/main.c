@@ -7,14 +7,16 @@ int APIENTRY WinMain(	// Main entrypoint for the application
 	_In_     LPSTR p_CommandLine,
 	_In_     int p_ShowCommand)
 {
-
 	if (IsGameAlreadyRunning())
 		return ERROR_GAME_ALREADY_RUNNING;
 	
 	if (CreateMainGameWindow() == FAILED)
 		return CRGetLastError();
+
+	if (GetMonitorInfoForWindow() == FAILED)
+		return CRGetLastError();	
 	
-	if (InitializeGame(g_hwnd) == FAILED)
+	if (InitializeGame(g_hwnd, g_monitorInfo) == FAILED)
 		return CRGetLastError();
 
 	MSG message = { 0 };
@@ -78,6 +80,8 @@ int CreateMainGameWindow()
 		windowClass.lpszClassName = GAME_NAME;
 	}
 
+	//SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2); // Minimum supported client: Windows 10, version 1703
+
 	if (!(RegisterClass(&windowClass))) // register the window class
 	{
 		CRSetLastError(ERROR_WINDOW_REGISTRATION);
@@ -103,8 +107,23 @@ int CreateMainGameWindow()
 		return FAILED;
 	}
 	ShowWindow(g_hwnd, SW_SHOW);
+	
+	return SUCCESS;
+}
 
-	return 0;
+int GetMonitorInfoForWindow()
+{
+	g_monitorInfo.cbSize = sizeof(g_monitorInfo);
+	if (GetMonitorInfoW(MonitorFromWindow(g_hwnd, MONITOR_DEFAULTTOPRIMARY), &g_monitorInfo) == 0/*failed*/)
+	{
+		CRSetLastError(ERROR_WINDOW_MONITOR_INFO);
+		return FAILED;
+	}
+
+	int monitorWidth = g_monitorInfo.rcMonitor.right - g_monitorInfo.rcMonitor.left;
+	int monitorHeight = g_monitorInfo.rcMonitor.bottom - g_monitorInfo.rcMonitor.top;
+
+	return SUCCESS;
 }
 
 BOOL IsGameAlreadyRunning(void)

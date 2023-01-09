@@ -30,8 +30,9 @@ typedef struct PIXEL32
 
 HWND m_hwnd;
 GAMEBITMAP m_backBuffer;
+MONITORINFO m_monitorInfo;
 
-int InitializeGame(HWND p_hwnd); // Ran after window but before loop
+int InitializeGame(HWND p_hwnd, MONITORINFO p_monitorInfo); // Ran after window but before loop
 void TerminateGame(void);
 
 void ProcessPlayerInput(void);
