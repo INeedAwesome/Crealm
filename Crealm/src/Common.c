@@ -1,11 +1,11 @@
 #include "Common.h"
 
-int CRGetLastError()
+int32_t CRGetLastError()
 {
 	return m_currentError;
 }
 
-void CRSetLastError(int p_errorCode)
+void CRSetLastError(int32_t p_errorCode)
 {
 	m_currentError = p_errorCode;
 }

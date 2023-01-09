@@ -1,7 +1,7 @@
 #include "Main.h"
 #include "Common.h"
 
-int APIENTRY WinMain(	// Main entrypoint for the application
+int32_t APIENTRY WinMain(	// Main entrypoint for the application
 	_In_     HINSTANCE p_Instance,
 	_In_opt_ HINSTANCE p_PreviousInstance,
 	_In_     LPSTR p_CommandLine,
@@ -10,31 +10,32 @@ int APIENTRY WinMain(	// Main entrypoint for the application
 	if (IsGameAlreadyRunning())
 		return ERROR_GAME_ALREADY_RUNNING;
 	
-	if (CRCreateMainGameWindow() == FAILED)
+	if (CRCreateMainGameWindow() == CRFAILED)
 		return CRGetLastError();
 
-	if (CRGetMonitorInfoForWindow() == FAILED)
+	if (CRGetMonitorInfoForWindow() == CRFAILED)
 		return CRGetLastError();	
 
-	if (CRSetWindowPosition() == FAILED)
+	if (CRSetWindowPosition() == CRFAILED)
 		return CRGetLastError();
 
 	CRQueryPerformanceFrequency();
 	
-	if (InitializeGame(g_hwnd, g_gamePerformanceData.g_monitorInfo) == FAILED)
+	if (InitializeGame(g_hwnd) == CRFAILED)
 		return CRGetLastError();
 
-	int64_t FrameStart = 0;
-	int64_t FrameEnd = 0;
-	int64_t ElapsedMicrosecondsPerFrame = 0;
-	int64_t ElapsedMicrosecondsPerFrameAccumulator = 0;
+	int64_t frameStart = 0;
+	int64_t frameEnd = 0;
+	int64_t elapsedMicrosecondsPerFrame = 0;
+	int64_t elapsedMicrosecondsPerFrameAccumulatorRaw = 0;
+	int64_t elapsedMicrosecondsPerFrameAccumulatorCooked = 0;
 
 	MSG message = { 0 };
 	g_Running = TRUE;
 
 	while (g_Running)	// Message / Window loop
 	{
-		QueryPerformanceCounter(&FrameStart);
+		QueryPerformanceCounter(&frameStart);
 
 		while (PeekMessage(&message, g_hwnd, 0, 0, PM_REMOVE))
 		{
@@ -50,27 +51,34 @@ int APIENTRY WinMain(	// Main entrypoint for the application
 		// render game
 		RenderFrameGraphics();
 
-		QueryPerformanceCounter(&FrameEnd);
+		QueryPerformanceCounter(&frameEnd);
 
-		ElapsedMicrosecondsPerFrame = (FrameEnd - FrameStart);
-
-		ElapsedMicrosecondsPerFrame *= 1000000;
-		ElapsedMicrosecondsPerFrame /= g_gamePerformanceData.PerformanceFrequency;
-
-		Sleep(1);
+		elapsedMicrosecondsPerFrame = (frameEnd - frameStart);
+		elapsedMicrosecondsPerFrame *= 1000000;
+		elapsedMicrosecondsPerFrame /= g_gamePerformanceData.PerformanceFrequency;
 
 		g_gamePerformanceData.TotalFramesRendered++;
-		ElapsedMicrosecondsPerFrameAccumulator += ElapsedMicrosecondsPerFrame;
-		
+		elapsedMicrosecondsPerFrameAccumulatorRaw += elapsedMicrosecondsPerFrame;
+
+		while (elapsedMicrosecondsPerFrame <= TARGET_MICROSECONDS_PER_FRAME)
+		{
+			Sleep(0);
+			elapsedMicrosecondsPerFrame = frameEnd - frameStart;
+			elapsedMicrosecondsPerFrame *= 1000000;
+			elapsedMicrosecondsPerFrame /= g_gamePerformanceData.PerformanceFrequency;
+
+			QueryPerformanceCounter(&frameEnd);
+		}
+
+		elapsedMicrosecondsPerFrameAccumulatorCooked += elapsedMicrosecondsPerFrame;
+
 		if ((g_gamePerformanceData.TotalFramesRendered % CALCULATE_AVG_FPS_EVERY_X_FPS) == 0)
 		{
-			int64_t averageMicrosecondsPerFrame = ElapsedMicrosecondsPerFrameAccumulator / CALCULATE_AVG_FPS_EVERY_X_FPS;
+			g_gamePerformanceData.RawFPSAverage = (1.0f / ((elapsedMicrosecondsPerFrameAccumulatorRaw / CALCULATE_AVG_FPS_EVERY_X_FPS) * 0.000001f));
+			g_gamePerformanceData.CookedFPSAverage = (1.0f / ((elapsedMicrosecondsPerFrameAccumulatorCooked / CALCULATE_AVG_FPS_EVERY_X_FPS) * 0.000001f));
 
-			char str[64] = { 0 };
-			_snprintf_s(str, _countof(str), _TRUNCATE, "Average milliseconds/frame: %02f\n", (float)(averageMicrosecondsPerFrame * 0.001f));
-			OutputDebugStringA(str);
-
-			ElapsedMicrosecondsPerFrameAccumulator = 0;
+			elapsedMicrosecondsPerFrameAccumulatorRaw = 0;
+			elapsedMicrosecondsPerFrameAccumulatorCooked = 0;
 		}
 	}
 
@@ -130,7 +138,7 @@ int32_t CRCreateMainGameWindow()
 	{
 		CRSetLastError(ERROR_WINDOW_REGISTRATION);
 		MessageBox(NULL, L"Window registration failed!", L"Error", MB_OK | MB_ICONERROR);
-		return FAILED;
+		return CRFAILED;
 	}
 
 	g_hwnd = CreateWindow(					// Creating the window
@@ -148,26 +156,26 @@ int32_t CRCreateMainGameWindow()
 	{
 		CRSetLastError(ERROR_WINDOW_CREATION);
 		MessageBox(NULL, L"Window creation failed!", L"Error", MB_OK | MB_ICONERROR);
-		return FAILED;
+		return CRFAILED;
 	}
 	ShowWindow(g_hwnd, SW_SHOW);
 	
-	return SUCCESS;
+	return CRSUCCESS;
 }
 
 int32_t CRGetMonitorInfoForWindow()
 {
-	g_gamePerformanceData.g_monitorInfo.cbSize = sizeof(g_gamePerformanceData.g_monitorInfo);
-	if (GetMonitorInfoW(MonitorFromWindow(g_hwnd, MONITOR_DEFAULTTOPRIMARY), &g_gamePerformanceData.g_monitorInfo) == 0/*failed*/)
+	g_gamePerformanceData.MonitorInfo.cbSize = sizeof(g_gamePerformanceData.MonitorInfo);
+	if (GetMonitorInfoW(MonitorFromWindow(g_hwnd, MONITOR_DEFAULTTOPRIMARY), &g_gamePerformanceData.MonitorInfo) == 0/*failed*/)
 	{
 		CRSetLastError(ERROR_WINDOW_MONITOR_INFO);
-		return FAILED;
+		return CRFAILED;
 	}
 
-	g_gamePerformanceData.g_monitorWidth = g_gamePerformanceData.g_monitorInfo.rcMonitor.right - g_gamePerformanceData.g_monitorInfo.rcMonitor.left;
-	g_gamePerformanceData.g_monitorHeight = g_gamePerformanceData.g_monitorInfo.rcMonitor.bottom - g_gamePerformanceData.g_monitorInfo.rcMonitor.top;
+	g_gamePerformanceData.MonitorWidth = g_gamePerformanceData.MonitorInfo.rcMonitor.right - g_gamePerformanceData.MonitorInfo.rcMonitor.left;
+	g_gamePerformanceData.MonitorHeight = g_gamePerformanceData.MonitorInfo.rcMonitor.bottom - g_gamePerformanceData.MonitorInfo.rcMonitor.top;
 
-	return SUCCESS;
+	return CRSUCCESS;
 }
 
 int32_t CRSetWindowPosition()
@@ -180,23 +188,23 @@ int32_t CRSetWindowPosition()
 	if (SetWindowLongPtr(g_hwnd, GWL_STYLE, (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & ~WS_OVERLAPPEDWINDOW) == 0)
 	{
 		CRSetLastError(ERROR_WINDOW_SET_STYLE);
-		return FAILED;
+		return CRFAILED;
 	}
 
 	if (SetWindowPos(g_hwnd, HWND_TOP,
-		g_gamePerformanceData.g_monitorInfo.rcMonitor.left, g_gamePerformanceData.g_monitorInfo.rcMonitor.top, 
-		g_gamePerformanceData.g_monitorWidth, g_gamePerformanceData.g_monitorHeight,
+		g_gamePerformanceData.MonitorInfo.rcMonitor.left, g_gamePerformanceData.MonitorInfo.rcMonitor.top,
+		g_gamePerformanceData.MonitorWidth, g_gamePerformanceData.MonitorHeight,
 		SWP_NOOWNERZORDER | SWP_FRAMECHANGED) == 0)
 	{
 		CRSetLastError(ERROR_WINDOW_SET_POS);
-		return FAILED;
+		return CRFAILED;
 	}
-	return SUCCESS;
+	return CRSUCCESS;
 }
 
 int32_t CRQueryPerformanceFrequency(void)
 {
 	QueryPerformanceFrequency(&g_gamePerformanceData.PerformanceFrequency);
-	
+	return CRSUCCESS;
 }
 

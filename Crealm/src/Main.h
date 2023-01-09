@@ -1,33 +1,20 @@
 #pragma once
-
-#include <stdio.h>
-
-#pragma warning(push, 2)
-#include <Windows.h>
-#pragma warning(pop)
-
 #include "Game.h"
+#include "Core.h"
 
 #define TOSTRING(X) #X
-#define CALCULATE_AVG_FPS_EVERY_X_FPS 30
-
-
-typedef struct GAME_PERFORMANCE_DATA
-{
-	uint64_t TotalFramesRendered;
-	uint32_t RawFPSAverage; // game loop speed
-	uint32_t CookedFPSAverage; // as close to 60/144/165/user value
-	int64_t PerformanceFrequency;
-
-	MONITORINFO g_monitorInfo;
-	int32_t g_monitorWidth;
-	int32_t g_monitorHeight;
-
-} GAME_PERFORMANCE_DATA;
+#define CALCULATE_AVG_FPS_EVERY_X_FPS 30 
+#define TARGET_MICROSECONDS_PER_FRAME 6060
 
 HWND g_hwnd;
 BOOL g_Running = FALSE;
-GAME_PERFORMANCE_DATA g_gamePerformanceData;
+
+int APIENTRY WinMain(	// Main entrypoint for the application
+	_In_     HINSTANCE p_Instance,
+	_In_opt_ HINSTANCE p_PreviousInstance,
+	_In_     LPSTR p_CommandLine,
+	_In_     int p_ShowCommand
+);
 
 HINSTANCE GetInstance()
 {

@@ -1,12 +1,10 @@
 #include "Game.h"
-#include "Common.h"
 
-int InitializeGame(HWND p_hwnd, MONITORINFO p_monitorInfo)
+int InitializeGame(HWND p_hwnd)
 {
 	m_hwnd = p_hwnd;
-	m_monitorInfo = p_monitorInfo;
-	m_monitorWidth = m_monitorInfo.rcMonitor.right - m_monitorInfo.rcMonitor.left;
-	m_monitorHeight = m_monitorInfo.rcMonitor.bottom - m_monitorInfo.rcMonitor.top;
+	m_monitorWidth = g_gamePerformanceData.MonitorInfo.rcMonitor.right - g_gamePerformanceData.MonitorInfo.rcMonitor.left;
+	m_monitorHeight = g_gamePerformanceData.MonitorInfo.rcMonitor.bottom - g_gamePerformanceData.MonitorInfo.rcMonitor.top;
 
 	m_backBuffer.BitmapInfo.bmiHeader.biSize = sizeof(m_backBuffer.BitmapInfo.bmiHeader);
 	m_backBuffer.BitmapInfo.bmiHeader.biWidth = GAME_RES_WIDTH;
@@ -20,13 +18,13 @@ int InitializeGame(HWND p_hwnd, MONITORINFO p_monitorInfo)
 	{
 		CRSetLastError(ERROR_NO_MEMORY);
 		MessageBox(NULL, L"Failed to allocate memory for drawing surface!", L"Error!", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
-		return FAILED;
+		return CRFAILED;
 	}
 	// VirtualAlloc zeroes out the buffer so we don't need to use ZeroMemory()
 
 
 
-	return SUCCESS;
+	return CRSUCCESS;
 }
 
 void TerminateGame(void)
@@ -40,6 +38,12 @@ void ProcessPlayerInput(void)
 	if (escapeKeyDown)
 	{
 		PostMessage(m_hwnd, WM_CLOSE, 0, 0);
+	}
+
+	int16_t debugKeyDown = GetAsyncKeyState(VK_F3);
+	if (debugKeyDown)
+	{
+		g_gamePerformanceData.DisplayDebugInfo = !g_gamePerformanceData.DisplayDebugInfo;
 	}
 
 }
@@ -74,6 +78,19 @@ void RenderFrameGraphics(void)
 		SRCCOPY
 	);
 
+	SelectObject(deviceContext, (HFONT)GetStockObject(ANSI_FIXED_FONT));
 
-	ReleaseDC(m_hwnd, deviceContext);
+	if (g_gamePerformanceData.DisplayDebugInfo)
+	{
+		char textOutBuffer[64] = { 0 };
+
+		sprintf_s(textOutBuffer, _countof(textOutBuffer), "FPS Cooked: %.01f", g_gamePerformanceData.CookedFPSAverage);
+		TextOutA(deviceContext, 10, 10, textOutBuffer, (int)strlen(textOutBuffer));
+
+		sprintf_s(textOutBuffer, _countof(textOutBuffer), "FPS Raw: %.01f", g_gamePerformanceData.RawFPSAverage);
+		TextOutA(deviceContext, 10, 34, textOutBuffer, (int)strlen(textOutBuffer));
+
+		ReleaseDC(m_hwnd, deviceContext);
+	}
+	
 }
