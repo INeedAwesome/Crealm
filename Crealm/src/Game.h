@@ -32,7 +32,10 @@ HWND m_hwnd;
 GAMEBITMAP m_backBuffer;
 MONITORINFO m_monitorInfo;
 
-int InitializeGame(HWND p_hwnd, MONITORINFO p_monitorInfo); // Ran after window but before loop
+int32_t m_monitorWidth;
+int32_t m_monitorHeight;
+
+int32_t InitializeGame(HWND p_hwnd, MONITORINFO p_monitorInfo); // Ran after window but before loop
 void TerminateGame(void);
 
 void ProcessPlayerInput(void);

@@ -10,11 +10,14 @@ int APIENTRY WinMain(	// Main entrypoint for the application
 	if (IsGameAlreadyRunning())
 		return ERROR_GAME_ALREADY_RUNNING;
 	
-	if (CreateMainGameWindow() == FAILED)
+	if (CRCreateMainGameWindow() == FAILED)
 		return CRGetLastError();
 
-	if (GetMonitorInfoForWindow() == FAILED)
+	if (CRGetMonitorInfoForWindow() == FAILED)
 		return CRGetLastError();	
+
+	if (CRSetWindowPosition() == FAILED)
+		return CRGetLastError();
 	
 	if (InitializeGame(g_hwnd, g_monitorInfo) == FAILED)
 		return CRGetLastError();
@@ -63,7 +66,20 @@ LRESULT CALLBACK MainWindowProcedure(
 	}
 }
 
-int CreateMainGameWindow()
+BOOL IsGameAlreadyRunning(void)
+{
+	HANDLE mutex = { 0 };
+	mutex = CreateMutex(NULL, GAME_NAME, L"_GameMutex");
+
+	if (GetLastError() == ERROR_ALREADY_EXISTS)
+	{
+		return 1; // true
+	}
+	return 0; // false
+}
+
+
+int CRCreateMainGameWindow()
 {
 	WNDCLASS windowClass; // initialize window class
 	ZeroMemory(&windowClass, sizeof(windowClass));
@@ -79,8 +95,6 @@ int CreateMainGameWindow()
 		windowClass.lpszMenuName = 0;
 		windowClass.lpszClassName = GAME_NAME;
 	}
-
-	//SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2); // Minimum supported client: Windows 10, version 1703
 
 	if (!(RegisterClass(&windowClass))) // register the window class
 	{
@@ -111,7 +125,7 @@ int CreateMainGameWindow()
 	return SUCCESS;
 }
 
-int GetMonitorInfoForWindow()
+int CRGetMonitorInfoForWindow()
 {
 	g_monitorInfo.cbSize = sizeof(g_monitorInfo);
 	if (GetMonitorInfoW(MonitorFromWindow(g_hwnd, MONITOR_DEFAULTTOPRIMARY), &g_monitorInfo) == 0/*failed*/)
@@ -120,20 +134,32 @@ int GetMonitorInfoForWindow()
 		return FAILED;
 	}
 
-	int monitorWidth = g_monitorInfo.rcMonitor.right - g_monitorInfo.rcMonitor.left;
-	int monitorHeight = g_monitorInfo.rcMonitor.bottom - g_monitorInfo.rcMonitor.top;
+	g_monitorWidth = g_monitorInfo.rcMonitor.right - g_monitorInfo.rcMonitor.left;
+	g_monitorHeight = g_monitorInfo.rcMonitor.bottom - g_monitorInfo.rcMonitor.top;
 
 	return SUCCESS;
 }
 
-BOOL IsGameAlreadyRunning(void)
+int CRSetWindowPosition()
 {
-	HANDLE mutex = { 0 };
-	mutex = CreateMutex(NULL, GAME_NAME, L"_GameMutex");
+	// WS_OVERLAPPEDWINDOW — example 0x01101101
+	// ~WS_OVERLAPPED // flipping
+	// // 0x10010010 // its flipped
 
-	if (GetLastError() == ERROR_ALREADY_EXISTS)
+
+	if (SetWindowLongPtr(g_hwnd, GWL_STYLE, (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & ~WS_OVERLAPPEDWINDOW) == 0)
 	{
-		return 1; // true
+		CRSetLastError(ERROR_WINDOW_SET_STYLE);
+		return FAILED;
 	}
-	return 0; // false
+
+	if (SetWindowPos(g_hwnd, HWND_TOP,
+		g_monitorInfo.rcMonitor.left, g_monitorInfo.rcMonitor.top, g_monitorWidth, g_monitorHeight, 
+		SWP_NOOWNERZORDER | SWP_FRAMECHANGED) == 0)
+	{
+		CRSetLastError(ERROR_WINDOW_SET_POS);
+		return FAILED;
+	}
+	return SUCCESS;
 }
+

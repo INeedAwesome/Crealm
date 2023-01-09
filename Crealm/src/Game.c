@@ -4,6 +4,9 @@
 int InitializeGame(HWND p_hwnd, MONITORINFO p_monitorInfo)
 {
 	m_hwnd = p_hwnd;
+	m_monitorInfo = p_monitorInfo;
+	m_monitorWidth = m_monitorInfo.rcMonitor.right - m_monitorInfo.rcMonitor.left;
+	m_monitorHeight = m_monitorInfo.rcMonitor.bottom - m_monitorInfo.rcMonitor.top;
 
 	m_backBuffer.BitmapInfo.bmiHeader.biSize = sizeof(m_backBuffer.BitmapInfo.bmiHeader);
 	m_backBuffer.BitmapInfo.bmiHeader.biWidth = GAME_RES_WIDTH;
@@ -47,9 +50,9 @@ void RenderFrameGraphics(void)
 
 	StretchDIBits(deviceContext, 
 		0, 0, 
-		100, 100, 
+		m_monitorWidth, m_monitorHeight,
 		0, 0, 
-		100, 100, 
+		GAME_RES_WIDTH, GAME_RES_HEIGHT,
 		m_backBuffer.Memory, 
 		&m_backBuffer.BitmapInfo, 
 		DIB_RGB_COLORS, 

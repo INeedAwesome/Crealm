@@ -13,6 +13,8 @@
 HWND g_hwnd;
 BOOL g_Running = FALSE;
 MONITORINFO g_monitorInfo;
+int32_t g_monitorWidth = 0;
+int32_t g_monitorHeight = 0;
 
 HINSTANCE GetInstance()
 {
@@ -25,9 +27,11 @@ LRESULT CALLBACK MainWindowProcedure(
 	WPARAM	p_Wide,
 	LPARAM	p_Low	// low — meaing short (considering the term wide)
 );
-
-int CreateMainGameWindow(void);
-
-int GetMonitorInfoForWindow();
-
 BOOL IsGameAlreadyRunning(void);
+
+int32_t CRCreateMainGameWindow(void);
+
+int32_t CRGetMonitorInfoForWindow();
+
+int32_t CRSetWindowPosition();
+
