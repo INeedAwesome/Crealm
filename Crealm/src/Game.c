@@ -58,7 +58,7 @@ void RenderFrameGraphics(void)
 
 	for (int32_t i = 0; i < GAME_RES_WIDTH * GAME_RES_HEIGHT; i++)
 	{
-		memcpy((PIXEL32*) m_backBuffer.Memory + i, &pixel, sizeof(PIXEL32));
+		memcpy_s((PIXEL32*) m_backBuffer.Memory + i, sizeof(PIXEL32), &pixel, sizeof(PIXEL32));
 	}
 
 	HDC deviceContext = GetDC(m_hwnd);

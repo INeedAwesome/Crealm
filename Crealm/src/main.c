@@ -18,15 +18,22 @@ int APIENTRY WinMain(	// Main entrypoint for the application
 
 	if (CRSetWindowPosition() == FAILED)
 		return CRGetLastError();
+
+	CRQueryPerformanceFrequency();
 	
-	if (InitializeGame(g_hwnd, g_monitorInfo) == FAILED)
+	if (InitializeGame(g_hwnd, g_gamePerformanceData.g_monitorInfo) == FAILED)
 		return CRGetLastError();
+
+	int64_t FrameStart = 0;
+	int64_t FrameEnd = 0;
 
 	MSG message = { 0 };
 	g_Running = TRUE;
 
 	while (g_Running)	// Message / Window loop
 	{
+		QueryPerformanceCounter(&FrameStart);
+
 		while (PeekMessage(&message, g_hwnd, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&message);
@@ -41,7 +48,23 @@ int APIENTRY WinMain(	// Main entrypoint for the application
 		// render game
 		RenderFrameGraphics();
 
+		QueryPerformanceCounter(&FrameEnd);
+
+		g_gamePerformanceData.ElapsedMicrosecondsPerFrame = (FrameEnd - FrameStart);
+
+		g_gamePerformanceData.ElapsedMicrosecondsPerFrame *= 1000000;
+		g_gamePerformanceData.ElapsedMicrosecondsPerFrame /= g_gamePerformanceData.PerformanceFrequency;
+
 		Sleep(1);
+
+		g_gamePerformanceData.TotalFramesRendered++;
+		
+		if ((g_gamePerformanceData.TotalFramesRendered % CALCULATE_AVG_FPS_EVERY_X_FPS) == 0)
+		{
+			char str[64] = { 0 };
+			_snprintf_s(str, _countof(str), _TRUNCATE, "Elapsed microseconds: %lli\n", g_gamePerformanceData.ElapsedMicrosecondsPerFrame);
+			OutputDebugStringA(str);
+		}
 	}
 
 	TerminateGame();
@@ -127,15 +150,15 @@ int CRCreateMainGameWindow()
 
 int CRGetMonitorInfoForWindow()
 {
-	g_monitorInfo.cbSize = sizeof(g_monitorInfo);
-	if (GetMonitorInfoW(MonitorFromWindow(g_hwnd, MONITOR_DEFAULTTOPRIMARY), &g_monitorInfo) == 0/*failed*/)
+	g_gamePerformanceData.g_monitorInfo.cbSize = sizeof(g_gamePerformanceData.g_monitorInfo);
+	if (GetMonitorInfoW(MonitorFromWindow(g_hwnd, MONITOR_DEFAULTTOPRIMARY), &g_gamePerformanceData.g_monitorInfo) == 0/*failed*/)
 	{
 		CRSetLastError(ERROR_WINDOW_MONITOR_INFO);
 		return FAILED;
 	}
 
-	g_monitorWidth = g_monitorInfo.rcMonitor.right - g_monitorInfo.rcMonitor.left;
-	g_monitorHeight = g_monitorInfo.rcMonitor.bottom - g_monitorInfo.rcMonitor.top;
+	g_gamePerformanceData.g_monitorWidth = g_gamePerformanceData.g_monitorInfo.rcMonitor.right - g_gamePerformanceData.g_monitorInfo.rcMonitor.left;
+	g_gamePerformanceData.g_monitorHeight = g_gamePerformanceData.g_monitorInfo.rcMonitor.bottom - g_gamePerformanceData.g_monitorInfo.rcMonitor.top;
 
 	return SUCCESS;
 }
@@ -154,12 +177,19 @@ int CRSetWindowPosition()
 	}
 
 	if (SetWindowPos(g_hwnd, HWND_TOP,
-		g_monitorInfo.rcMonitor.left, g_monitorInfo.rcMonitor.top, g_monitorWidth, g_monitorHeight, 
+		g_gamePerformanceData.g_monitorInfo.rcMonitor.left, g_gamePerformanceData.g_monitorInfo.rcMonitor.top, 
+		g_gamePerformanceData.g_monitorWidth, g_gamePerformanceData.g_monitorHeight,
 		SWP_NOOWNERZORDER | SWP_FRAMECHANGED) == 0)
 	{
 		CRSetLastError(ERROR_WINDOW_SET_POS);
 		return FAILED;
 	}
 	return SUCCESS;
+}
+
+int32_t CRQueryPerformanceFrequency(void)
+{
+	QueryPerformanceFrequency(&g_gamePerformanceData.PerformanceFrequency);
+	
 }
 
